@@ -6,6 +6,7 @@ Dra.  Ana Ruth Escoto Castillo
 ## Objetivo general: 
 Que el estudiantado sea capaz de aplicar conceptos demográficos y estadísticos utilizando el paquete R a fuentes de información mexicanas y mundiales. 
 
+Ver programa [aquí](programa.pdf)
 
 ## Previo
 
