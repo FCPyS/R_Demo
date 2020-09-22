@@ -23,6 +23,8 @@ Ver programa [aquí](programa.pdf)
 
 *Objetivo: que el estudiantado sea familiarice con la interfase de trabajo y la programación por objetos, del mismo modo que sean capaces de realizar tareas básicas tales como crear un script, un proyecto, objetos, ambientes e instalar paqueterías.*
 
+[Práctica 1](P1.md)
+
 ## 2.	Importación de información y primera revisión de fuentes demográficas (8 horas)
 
 a.	Importación de información a R en diferentes formatos
