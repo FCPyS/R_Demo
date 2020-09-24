@@ -25,6 +25,8 @@ Ver programa [aquí](programa.pdf)
 
 [Práctica 1](P1.md)
 
+[Sesión 1 - Grabación](https://youtu.be/_mB03QTMY28)
+
 ## 2.	Importación de información y primera revisión de fuentes demográficas (8 horas)
 
 a.	Importación de información a R en diferentes formatos
