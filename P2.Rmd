@@ -2,12 +2,7 @@
 title: "Práctica 2. Importación y manipulación de datos"
 author: "AE & ML"
 date: "22/08/2020"
-output:
-  html_document:
-    toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: false
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -23,9 +18,11 @@ Este es un ejemplo de un código. Y vamos a introducir un paquete muy útil llam
 ```{r}
 if (!require("pacman")) install.packages("pacman") # instala pacman si se requiere
 pacman::p_load(tidyverse, 
-               readxl,writexl,googlesheets4,
-               haven, foreign, sjlabelled,
-               janitor, skimr) #carga los paquetes necesarios para esta práctica
+               readxl,writexl,googlesheets4, # importar hojas de cálculo
+               haven, foreign, # importación de dta y sab
+               sjlabelled, # etiquetas
+               janitor, skimr, #carga los paquetes necesarios para esta práctica
+               curl) # problema de proxies 
 
 ```
 
@@ -252,6 +249,13 @@ En estas bases hay acentos y otros carecteres especiales del español, por lo qu
 #names(mig_inter_quin_proyecciones)
 ```
 
+Ahorita hay un problema de certificados, por lo que vamos a descargarlo desde el repositorio
+```{r}
+pob_mit_proyecciones.csv <- read.csv("https://github.com/aniuxa/R_Demo/raw/master/datos/pob_mit_proyecciones.csv", encoding="latin1")
+#View(pob_mit_proyecciones.csv)
+names(pob_mit_proyecciones.csv)
+
+```
 
 # Revisando ECOVID-ML
 
