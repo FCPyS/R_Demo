@@ -42,6 +42,8 @@ c.	Revisión de Encuestas y ejemplos de importación de acuerdo al tema de cada 
 
 [Práctica 2](P2.md)
 
+[Sesión 2 - Grabación](https://youtu.be/mJ-VlGUVbsY)
+
 ## 3.	Revisión de elementos estadísticos básicos desde “tidyverse” (8 horas)
 a.	Tabulados con “tabyl()” y con “tally()” y uso de factores de expansión. Lectura e interpretación de tablas de doble entrada
 
