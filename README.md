@@ -27,6 +27,9 @@ Ver programa [aquí](programa.pdf)
 
 [Sesión 1 - Grabación](https://youtu.be/_mB03QTMY28)
 
+Resolución ejercicio 1, [aquí](https://rpubs.com/aniuxa/Ej12018)
+
+
 ## 2.	Importación de información y primera revisión de fuentes demográficas (8 horas)
 
 a.	Importación de información a R en diferentes formatos
@@ -36,6 +39,8 @@ b.	Importación de información de proyecciones de población de Conapo
 c.	Revisión de Encuestas y ejemplos de importación de acuerdo al tema de cada estudiante
 
 *Objetivo: que el estudiantado sea capaz de importar información desde diferentes formatos (.txt, .csv, .xlsx, .dta, .dbf) a R, así como de exportar sus resultados en estos formatos. Del mismo modo que sean capaces de revisar de manera preliminar los objetos de tipo “data.frame”: funciones “glimpse()”, “skim() de “skimr”, manejo de etiquetas y hacer subconjuntos de información.*
+
+[Práctica 1](P2.md)
 
 ## 3.	Revisión de elementos estadísticos básicos desde “tidyverse” (8 horas)
 a.	Tabulados con “tabyl()” y con “tally()” y uso de factores de expansión. Lectura e interpretación de tablas de doble entrada
