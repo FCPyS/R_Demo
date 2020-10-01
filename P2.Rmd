@@ -1,8 +1,13 @@
 ---
 title: "Práctica 2. Importación y manipulación de datos"
-author: "AE & ML"
-date: "22/08/2020"
-output: github_document
+author: "AE"
+date: "1/10/2020"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
 ---
 
 ```{r setup, include=FALSE}
