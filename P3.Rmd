@@ -1,0 +1,209 @@
+---
+title: "Práctica 3. Más manipulación"
+author: "AE"
+date: "8/10/2020"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Previo
+
+## Paquetería
+
+```{r}
+if (!require("pacman")) install.packages("pacman") # instala pacman si se requiere
+pacman::p_load(tidyverse, 
+               readxl,writexl,googlesheets4, # importar hojas de cálculo
+               haven, foreign, # importación de dta y sav
+               sjlabelled, # etiquetas
+               janitor, skimr) #limpieza y verificación
+
+```
+
+## Directorio
+En caso que no tengas un proyecto,establecer el diretorio puede ayudar
+
+<i>¡Recuerda establecer tu directorio!</i>
+```{r 1}
+setwd("/Users/anaescoto/Dropbox/2020/2021-1 R para Demográfos/repo/R_Demo")
+```
+
+## Bases
+
+Base de competitividad estatal - IMCO
+```{r 3}
+ICE_2018 <- read_excel("./datos/ICE_2018.xlsx", sheet = "para_importar")
+#View(ICI_2018)
+```
+Y limpiamos los nombres:
+
+```{r}
+ICE_2018<-clean_names(ICE_2018)
+```
+
+
+Base de ECOVID - ML
+
+```{r}
+ecovid0420 <- read_dta("./datos/ecovid0420.dta")
+```
+
+# Formatos y un poco más
+
+Existen operaciones que cambian las propiedades de nuestras bases de datos.
+
+```{r}
+class(ICE_2018$region)
+```
+
+Existen varios "as"
+
+```{r}
+class(as.numeric(ICE_2018$region))
+```
+
+Con esto podemos verificar el tipo de variable, es de especial utilidad para los gráficos que veremos más adelante. 
+
+Veamos un caso contrario
+
+```{r}
+class(ICE_2018$matrimonio_igualitario)
+```
+
+En realidad, de acuerdo a la documentación:
+
+* 0=No se considera el matrimonio igualitario
+
+* 1=Sí se considera el matrimonio igualitario
+
+```{r}
+as_factor(ICE_2018$matrimonio_igualitario)  # checa también as.factor
+```
+
+
+También existen otra serie de comandos que se llaman "is.na", arrojan resultados de falso y verdadero
+
+```{r}
+is.na(ICE_2018$region)
+```
+
+
+```{r}
+table(is.na(ICE_2018$region))
+```
+Todos dicen Falso, ninguno es missing
+
+```{r}
+mean(is.na(ICE_2018$region))
+```
+Proporcion de 0 de valores missing.
+
+
+Botando missing de un dataframe
+```{r}
+prueba<-na.omit(ICE_2018)
+```
+
+Más vale ver las variables
+```{r}
+prueba2<-ICE_2018 %>% 
+  select(region:pobreza) %>% 
+  na.omit()
+```
+
+
+# Etiquetando
+Vimos en la clase pasada cómo usar las etiquetas, pero... queremos hacer nuestras propias etiquetas. 
+
+Como siempre es útil tener a la mano nuestro "codebook" o descriptor de archivos. Usaremos la variable clase2 de la ECOVID - ML
+
+
+```{r}
+ecovid0420$clase2 <- set_labels(ecovid0420$clase2, labels = c("Ocupado(a)",
+                                                              "Desocupado(a)", "Disponible", "No disponible"))
+
+```
+
+OJO: las etiquetas sólo se pueden aplicar a una variable numérica. Si la variable está declarada como factor o caracter no se puede etiquear. 
+
+Veamos cómo se ve nuestra etiqueta:
+
+```{r}
+table(as_label(ecovid0420$clase2))
+```
+
+Con "tabyl"
+```{r}
+ecovid0420 %>% 
+  mutate(clase2=as_label(clase2)) %>% # mutate para cambiar los valores
+  tabyl(clase2)
+```
+
+
+Para establecer la etiqueta de la variable tenemos:
+
+```{r}
+ecovid0420$clase2 <- set_label(ecovid0420$clase2, label = "Condición de Actividad")
+
+```
+
+Cuando hemos etiquetado también las variables puede automatizar algunos títulos, porque podemos "pegar" este atributo
+
+
+```{r}
+titulo<-paste(get_label(ecovid0420$clase2))
+titulo
+```
+
+# Duplicados con janitor
+
+Verificar el id, es una actividad esencial para el manejo de las bases de datos. Identificar qué significa nuestro renglón nos da mucha tranquilidad
+
+```{r}
+ICE_2018 %>% 
+  get_dupes(region)
+```
+Esto es lo que queremos, que no hayan duplicados. Eso significa que es un identificador único.
+
+
+```{r}
+ecovid0420 %>% 
+  get_dupes(per, ent, con)
+```
+
+La llave puede ser una variable o varias variables. Ojo, se separan por comas. En el diagrama de relación o en el descriptor puede estar esta información
+
+
+# Actividad en clase
+
+Con la base que entregó:
+
+1. Verifique los valores missings o perdidos de una variable de interés
+
+2. Etiquete una variable (si aplica). Revise primero qué tipo de variable es.
+
+3. Identifique las variables llave y verifique que no tenga duplicados
+
+
+4. Revisa qué hacen los siguientes comandos:
+
+* is.finite(x)
+* is.infinite(x)
+* is.nan(x)
+
+Subir la información
+
+<https://forms.gle/nsqHGosCTM9TthiQA> En caso que no terminemos en la sesión 
+
+Revisaremos las pantallas en clase. De los errores aprendemos.
+
+
