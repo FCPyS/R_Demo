@@ -44,6 +44,10 @@ c.	Revisión de Encuestas y ejemplos de importación de acuerdo al tema de cada 
 
 [Sesión 2 - Grabación](https://youtu.be/mJ-VlGUVbsY)
 
+[Práctica 3](P3.md)
+
+[Sesión 3 - Grabación](https://www.youtube.com/watch?v=uejfVFO38d4)
+
 ## 3.	Revisión de elementos estadísticos básicos desde “tidyverse” (8 horas)
 a.	Tabulados con “tabyl()” y con “tally()” y uso de factores de expansión. Lectura e interpretación de tablas de doble entrada
 
@@ -52,8 +56,6 @@ b.	Estadística descriptiva básica (medidas de tendencia central, dispersión y
 c.	Gráficos univariados y bivariados usando “ggplot2”
 
 *Objetivo: que el estudiantado sea capaz de realizar análisis estadísticos básicos utilizando las bases de datos más afines a sus temas de investigación.*
-
-[Práctica 3](P3.md)
 
 
 ## 4.	Modelos estadísticos con R (16 horas)
