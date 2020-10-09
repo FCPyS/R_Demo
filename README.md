@@ -68,7 +68,7 @@ c.	Modelos de regresión lineal
 
 d.	Introducción a otros modelos generalizados
 
-*Objetivo: que el estudiantado sea capaz de realizar inferencia estadística y modelado de una variable dependiente utilizando las bases de datos más afines a sus temas de investigación. *
+*Objetivo: que el estudiantado sea capaz de realizar inferencia estadística y modelado de una variable dependiente utilizando las bases de datos más afines a sus temas de investigación.*
 
 ## 5.	Aplicaciones relacionadas a la demografía I (8 horas)
 
