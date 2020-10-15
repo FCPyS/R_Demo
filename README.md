@@ -57,6 +57,7 @@ c.	Gráficos univariados y bivariados usando “ggplot2”
 
 *Objetivo: que el estudiantado sea capaz de realizar análisis estadísticos básicos utilizando las bases de datos más afines a sus temas de investigación.*
 
+[Práctica 4](P4.md)
 
 ## 4.	Modelos estadísticos con R (16 horas)
 
