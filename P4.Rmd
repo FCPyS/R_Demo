@@ -251,7 +251,9 @@ ecovid0420 %>%
 ```
 
 
-## Tally y los factores de expansión 
+# Factores de expansión 
+
+## La función tally
 
 El comando "tabyl()" del paquete "janitor" es muy útil pero no es compatible con los factores del expansión. En realidad, tabyl() nos ahorra un poco el hecho de tener que agrupar nuestra base en categorías y luego hacer un conteo para cada una de ellas. "tally()" es un comando que nos hace ese conteo y "group_by" nos agrupa las observaciones de nuestra base de datos para hacer cualquier operación. 
 
