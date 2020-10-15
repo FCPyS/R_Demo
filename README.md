@@ -59,6 +59,11 @@ c.	Gráficos univariados y bivariados usando “ggplot2”
 
 [Práctica 4](P4.md)
 
+[Sesión 4 - Grabación - Parte 1](https://youtu.be/DWlmD10vIUQ)
+
+[Sesión 4 - Grabación - Parte 2](https://youtu.be/IeSbVUEnrT8)
+
+
 ## 4.	Modelos estadísticos con R (16 horas)
 
 a.	Pruebas de Hipótesis
