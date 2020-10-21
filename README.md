@@ -63,6 +63,8 @@ c.	Gráficos univariados y bivariados usando “ggplot2”
 
 [Sesión 4 - Grabación - Parte 2](https://youtu.be/IeSbVUEnrT8)
 
+[Práctica 5](P5.md)
+
 
 ## 4.	Modelos estadísticos con R (16 horas)
 
