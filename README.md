@@ -72,7 +72,7 @@ a.	Pruebas de Hipótesis
 
 b.	ANOVA
 
-[Práctica 5](P5.md)
+[Práctica 6](P6.md)
 
 c.	Modelos de regresión lineal
 
