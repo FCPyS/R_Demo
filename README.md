@@ -72,6 +72,8 @@ a.	Pruebas de Hipótesis
 
 b.	ANOVA
 
+[Práctica 5](P5.md)
+
 c.	Modelos de regresión lineal
 
 d.	Introducción a otros modelos generalizados
