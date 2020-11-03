@@ -72,6 +72,10 @@ a.	Pruebas de Hipótesis
 
 b.	ANOVA
 
+[Práctica 6](P6.md)
+
+[Sesión 6 - Grabación](https://youtu.be/cLuSjoNw1eQ)
+
 c.	Modelos de regresión lineal
 
 d.	Introducción a otros modelos generalizados
