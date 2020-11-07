@@ -80,6 +80,7 @@ c.	Modelos de regresión lineal
 
 [Práctica 7](P7.md)
 
+[Sesión 7 - Grabación](https://youtu.be/2jOGy2RG_Zs)
 
 d.	Introducción a otros modelos generalizados
 
