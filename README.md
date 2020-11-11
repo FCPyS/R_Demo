@@ -78,6 +78,10 @@ b.	ANOVA
 
 c.	Modelos de regresión lineal
 
+[Práctica 7](P7.md)
+
+[Sesión 7 - Grabación](https://youtu.be/2jOGy2RG_Zs)
+
 d.	Introducción a otros modelos generalizados
 
 *Objetivo: que el estudiantado sea capaz de realizar inferencia estadística y modelado de una variable dependiente utilizando las bases de datos más afines a sus temas de investigación.*
