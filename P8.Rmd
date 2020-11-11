@@ -1,0 +1,316 @@
+---
+title: "Práctica 8. Regresión lineal y más"
+author: "Ana Escoto"
+date: "12/11/2020"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Previo
+
+## Paquetería
+
+```{r}
+
+#install.packages("sjPlot", dependencies=T) # solito porque da problmas
+
+library(sjPlot)
+
+if (!require("pacman")) install.packages("pacman") # instala pacman si se requiere
+pacman::p_load(tidyverse, 
+               readxl,writexl,googlesheets4, # importar hojas de cálculo
+               haven, foreign, # importación de dta y sav
+               sjlabelled, # etiquetas
+               janitor, skimr, #limpieza y verificación
+               imputeTS, # para imputar valores
+               srvyr, # Para el diseño muestral
+               esquisse, # para usar ggplot de manera más amigable
+               DescTools, # Paquete para estimaciones y pruebas
+               infer, # tidy way 
+               broom,  # Una escobita para limpiar (pero es para arreglar)
+               estimatr, car, stargazer, ggpubr, # Para la regresión práctica 7
+               jtools, lm.beta, robustbase, sandwich, 
+               officer,flextable,huxtable, ggstance, kableExtra) # Para la regresión práctica 8
+
+```
+
+## Directorio
+En caso que no tengas un proyecto,establecer el directorio puede ayudar
+
+```{r 1}
+setwd("/Users/anaescoto/Dropbox/2020/2021-1 R para Demográfos/repo/R_Demo")
+```
+
+## Bases
+Base de ECOVID - ML
+```{r}
+ecovid0420 <- read_dta("https://github.com/aniuxa/R_Demo/raw/master/datos/ecovid0420.dta")
+```
+
+## Base cortada y modelo práctica pasada
+
+
+
+```{r}
+mydata<- ecovid0420 %>% 
+  filter(clase2==1) %>% # me quedo con los ocupados
+  mutate(pb1=as_label(pb1)) %>%  # Para hacer gráficos sin problemas
+  select(ent, pa1,starts_with("pb"), pos_ocu, pe10_1, fac_per, pa4_1)
+
+mydata$log_hrs<-log(mydata$pe10_1)
+
+```
+
+
+```{r}
+modelo2<-lm(log_hrs ~ pb2 + pb1 + pa1, data = mydata, # es ligeramente diferente al de la clse pasada
+    na.action = na.exclude)
+summary(modelo2)
+```
+
+```{r}
+summ(modelo2)
+```
+
+```{r}
+tidy(modelo2)%>%
+  kbl() %>%
+  kable_paper("hover", full_width = F)
+```
+
+
+# Estandarizando que es gerundio
+
+Comparar los resultados de los coeficientes es díficil, porque el efecto está medido en las unidades que fueron medidas. Por lo que no sería tan comparable el efecto que tenemos de nuestro índice sumativo (proporción de lugares con inseguridad declarada) con respecto a la eda (que se mide en años). Por lo que a veces es mejor usar las medida estandarizadas (es decir, nuestra puntajes z).
+
+Podemos hacerlo transormando nuestras variables de origen e introducirlas al modelo. O bien, podemos usar un paquete que lo hace directamente. Los coeficientes calculados se les conoce como "beta"
+
+Simplemente aplicamos el comando a nuestros modelos ya calculados
+
+```{r}
+lm.beta(modelo2)
+```
+
+Hoy la comparación será mucho más clara y podemos ver qué variable tiene mayor efecto en nuestra dependiente.
+
+```{r}
+modelo_beta<-lm.beta(modelo2)
+modelo_beta
+```
+
+Para graficarlos, podemos usar de nuevo el comando plot_model(), con una opción
+
+```{r}
+plot_model(modelo2, type="std")
+```
+
+¿Qué podemos concluir de estos resultados?
+
+
+#Post-estimación
+## Las predicciones
+
+Unos de los usos más comunes de los modelos estadísticos es la predicción
+
+```{r}
+sjPlot::plot_model(modelo2, type="pred", terms = "pb2")
+```
+
+También podemos incluir la predecciones para los distintos valores de las variables
+```{r}
+plot_model(modelo2, type="pred", terms = c("pb2","pb1")) + theme_blank()
+```
+
+El orden de los términos importa:
+```{r}
+plot_model(modelo2, type="pred", terms = c("pb1","pb2")) + theme_blank()
+```
+
+## Efectos marginales
+Con los efectos marginales, por otro lado medimos el efecto promedio, dejando el resto de variables constantes.
+
+```{r}
+plot_model(modelo2, type="eff", terms = "pb2")
+plot_model(modelo2, type="eff", terms = "pb1")
+
+```
+¿Es el mismo gráfico que con "pred"? Veamos la ayuda
+
+¿Y si queremos ver esta informaicón graficada?
+```{r}
+eff<-plot_model(modelo2, type="eff", terms = "pb2")
+eff$data
+
+```
+
+
+```{r}
+eff<-plot_model(modelo2, type="pred", terms = "pb2")
+eff$data
+```
+
+# Extensiones del modelo de regresión
+
+##Introducción a las interacciones
+
+Muchas veces las variables explicativas van a tener relación entre sí. Por ejemplo ¿Las horas tendrá que ver con el sexo y afectan no sólo en intercepto si no también la pendiente? Para ello podemos introducir una interacción
+
+```{r}
+modelo_int1<-lm(log_hrs ~ pb2 * pb1 , data = mydata, na.action=na.exclude)
+summary(modelo_int1)
+```
+
+Esta interacción lo que asume es que las pendientes pueden moverse (aunque en este caso específico no lo hacen tanto porque no nos salió significativa)
+
+```{r}
+plot_model(modelo_int1, type="int", terms = c("pb1", "pb2"))
+
+```
+
+## Efectos no lineales
+
+
+### Explicitando el logaritmo
+
+```{r}
+modelo_log<-lm(log_hrs ~ log(pb2) + pb1, data = mydata, na.action = na.exclude)
+summary(modelo_log)
+```
+
+
+```{r}
+plot_model(modelo_log, type="pred", terms ="pb2")
+
+```
+### Efecto cuadrático (ojo con la sintaxis)
+
+```{r}
+modelo_quadr<-lm(log_hrs ~ pb2 + I(pb2^2) + pb1, 
+                 data=mydata, 
+                 na.action=na.exclude)
+summary(modelo_quadr)
+
+```
+
+Quizás con un gráfico de lo predicho tenemos más claro lo que hace ese término
+
+```{r}
+plot_model(modelo_quadr, type="pred", terms = c("pb2"))
+
+```
+
+En efecto, lo que nos da el signo del cuadrático puede hablarnos del comportamiento  cóncavo hacia arriba o hacia abajo. La edad muchas veces tiene este comportamiento en algunos fenómenos.
+
+
+
+# No cumplo los supuestos
+
+## Heterocedasticidad
+El problema de la heterocedasticidad es que los errores estándar de subestiman, por lo que si estos están en el cociente de nuestro estadístico de prueba t, esto implicaría que nuestras pruebas podrían estar arrojando valores significativos cuando no lo son. 
+
+Una forma muy sencilla es pedir los errores robustos, esto se puede desarrollar con el paquete "estimatr" <https://declaredesign.org/r/estimatr/articles/getting-started.html>
+```{r}
+modelo2rob1 <- lm_robust(log_hrs ~ pb2 + as_label(pb1) + pa1, data = mydata)
+summary(modelo2rob1)
+tidy(modelo2rob1)
+```
+
+## Errores en clúster
+
+Cuando tenemos individuos que pertenecen a una misma unidad, podemos crear errores anidados en clúster:
+
+```{r}
+# cluster robust standard errors
+modelo2rob2<- lm_robust(log_hrs ~ pb2 + as_label(pb1) + pa1, data = mydata, clusters = ent)
+# standard summary view also available
+summary(modelo2rob2)
+```
+
+## ¡Nuevo! jtools
+Jacob Long is back!
+
+<https://cran.r-project.org/web/packages/jtools/vignettes/summ.html>
+
+```{r}
+summ(modelo2, robust = "HC1")
+```
+
+También "summ" funciona para estandarizar:
+```{r}
+summ(modelo2, scale = TRUE)
+
+```
+
+
+## Regresión robusta
+
+```{r}
+library(robustbase)
+modelo2rob3<-lmrob(log_hrs ~ pb2 + as_label(pb1) + pa1, data = mydata, 
+    na.action = na.exclude)
+summary(modelo2rob3)
+
+```
+No es lo mismo la regresión robusta que los errores robustos. La regresión robusta es más robusta a los outliers. No confundir.
+
+La regresión robusta, es esto, robusta a los outliers, porque pesa el valor de las observaciones de tal manera que los outliers tenga menor influencia.
+
+## Comparando modelos
+
+Usaremos "stargazer" para revisar nuestros modelos. Los modelos que usamos con "estimatr" al tener más información (como los intervalos de confianza), no podemos introducirlos directamente.
+```{r mytextable2}
+stargazer(modelo2, modelo2rob3, type = 'text', header=FALSE)
+
+```
+
+Así que ni modo. Stargazer nos acompañó mucho mucho tiempo. Pero parece ser que quién lo creó no lo quiere cambiar ¿qué hacer? Pues Jacob Long nos salvó la vida:
+
+```{r}
+jtools:::export_summs(modelo2, modelo2rob1, modelo2rob2, modelo2rob3)
+
+```
+
+Estas tablas también están muy lindas y pueden exportarse a otros formatos:
+```{r}
+#jtools::export_summs(modelo2, modelo2rob1, modelo2rob2, modelo2rob3, to.file = "PDF", file.name = "test.pdf")
+```
+
+
+## Extra:
+
+Revisando jtools:
+
+```{r}
+plot_summs(modelo2,
+          scale=T,
+          plot.distributions = TRUE, 
+          inner_ci_level = .9)
+```
+
+## Un poquito de reflexión
+
+Se pueden usar métodos no paramétricos, como la regresión mediana. O como ya vimos podemos transformar la variable a logaritmo, seleccionar casos. 
+
+Es recomendable mejor utilizar otro tipo de modelos más robustos a la presencia de outliers (i.e. regresión robusta) y menos dependientes de una distribución normal (i.e. regresión mediana).
+
+# Ejercicio
+
+Se le pedirá revisar o ajustar el modelo que entregó la semana pasada de acuerdo a si tuvo problemas de heterocedasticidad o algún otro elemento en los diagnósticos.
+
+Posteriormente:
+
+1. Incluir un efecto no lineal en su ajuste
+
+2. Luego se le pide revisar los efectos de su modelo
+
+Adjunte sus respuestas (con screenshot de sus resultados), acá:
+
+<https://forms.gle/2xJHC3qbcDYSjtuS6>
