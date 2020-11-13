@@ -115,7 +115,8 @@ plot_model(modelo2, type="std")
 ¿Qué podemos concluir de estos resultados?
 
 
-#Post-estimación
+# Post-estimación
+
 ## Las predicciones
 
 Unos de los usos más comunes de los modelos estadísticos es la predicción
@@ -159,7 +160,7 @@ eff$data
 
 # Extensiones del modelo de regresión
 
-##Introducción a las interacciones
+## Introducción a las interacciones
 
 Muchas veces las variables explicativas van a tener relación entre sí. Por ejemplo ¿Las horas tendrá que ver con el sexo y afectan no sólo en intercepto si no también la pendiente? Para ello podemos introducir una interacción
 
@@ -250,7 +251,7 @@ summ(modelo2, scale = TRUE)
 ```
 
 
-## Regresión robusta
+# Regresión robusta
 
 ```{r}
 library(robustbase)
@@ -263,7 +264,7 @@ No es lo mismo la regresión robusta que los errores robustos. La regresión rob
 
 La regresión robusta, es esto, robusta a los outliers, porque pesa el valor de las observaciones de tal manera que los outliers tenga menor influencia.
 
-## Comparando modelos
+# Comparando modelos
 
 Usaremos "stargazer" para revisar nuestros modelos. Los modelos que usamos con "estimatr" al tener más información (como los intervalos de confianza), no podemos introducirlos directamente.
 ```{r mytextable2}
@@ -284,7 +285,7 @@ Estas tablas también están muy lindas y pueden exportarse a otros formatos:
 ```
 
 
-## Extra:
+# Extra:
 
 Revisando jtools:
 
@@ -295,9 +296,9 @@ plot_summs(modelo2,
           inner_ci_level = .9)
 ```
 
-## Un poquito de reflexión
+# Un poquito de reflexión
 
-Se pueden usar métodos no paramétricos, como la regresión mediana. O como ya vimos podemos transformar la variable a logaritmo, seleccionar casos. 
+Se pueden usar métodos no paramétricos, como la regresión mediana (checar el paquete "quantreg". O como ya vimos podemos transformar la variable a logaritmo, seleccionar casos. 
 
 Es recomendable mejor utilizar otro tipo de modelos más robustos a la presencia de outliers (i.e. regresión robusta) y menos dependientes de una distribución normal (i.e. regresión mediana).
 
