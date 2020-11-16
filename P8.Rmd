@@ -178,7 +178,6 @@ plot_model(modelo_int1, type="int", terms = c("pb1", "pb2"))
 
 ## Efectos no lineales
 
-
 ### Explicitando el logaritmo
 
 ```{r}
@@ -191,6 +190,7 @@ summary(modelo_log)
 plot_model(modelo_log, type="pred", terms ="pb2")
 
 ```
+
 ### Efecto cuadrático (ojo con la sintaxis)
 
 ```{r}
