@@ -84,6 +84,7 @@ c.	Modelos de regresión lineal
 
 [Práctica 8](P8.md)
 
+[Sesión 8 - Grabación](https://youtu.be/9J0t2dyzXVE)
 
 d.	Introducción a otros modelos generalizados
 
