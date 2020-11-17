@@ -1,0 +1,394 @@
+---
+title: "Práctica 9. Generalizados: logit y más"
+author: "Ana Escoto"
+date: "19/11/2020"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Previo
+
+## Paquetería
+
+```{r}
+
+#install.packages("sjPlot", dependencies=T) # solito porque da problmas
+
+library(sjPlot)
+
+if (!require("pacman")) install.packages("pacman") # instala pacman si se requiere
+pacman::p_load(tidyverse, 
+               readxl,writexl,googlesheets4, # importar hojas de cálculo
+               haven, foreign, # importación de dta y sav
+               sjlabelled, # etiquetas
+               janitor, skimr, #limpieza y verificación
+               imputeTS, # para imputar valores
+               srvyr, # Para el diseño muestral
+               esquisse, # para usar ggplot de manera más amigable
+               DescTools, # Paquete para estimaciones y pruebas
+               infer, # tidy way 
+               broom,  # Una escobita para limpiar (pero es para arreglar)
+               estimatr, car, stargazer, ggpubr, # Para la regresión práctica 7
+               jtools, lm.beta, robustbase, sandwich, effects,
+               officer,flextable,huxtable, ggstance, kableExtra, # Para la regresión práctica 8
+               ResourceSelection, lmtest, mlogit, nnet) # Práctica 9
+
+```
+
+## Directorio
+En caso que no tengas un proyecto,establecer el directorio puede ayudar
+
+```{r 1}
+setwd("/Users/anaescoto/Dropbox/2020/2021-1 R para Demográfos/repo/R_Demo")
+```
+
+## Bases
+Base de ECOVID - ML
+```{r}
+ecovid0420 <- read_dta("https://github.com/aniuxa/R_Demo/raw/master/datos/ecovid0420.dta")
+```
+
+## Base cortada y modelo práctica pasada
+
+```{r}
+mydata<- ecovid0420 %>% 
+  mutate(pb1=as_label(pb1)) %>%  # Para hacer gráficos sin problemas
+  select(ent, pa1,starts_with("pb"), clase1, clase2, clase3, fac_per)
+
+
+```
+
+
+Vamos a volver dicotómica (0,1) nuestra variable [y de paso repasamos cómo se recodifica en R]
+```{r}
+mydata$y_binomial<-NA
+mydata$y_binomial[mydata$clase1==1]<-1
+mydata$y_binomial[mydata$clase1==2]<-0
+
+newdata <- na.omit(mydata)
+
+```
+
+# Intro
+En esta práctica vamos a revisar los elementos básicos para la regresión logística. El proceso en R para todos los modelos generalizados se parece mucho. Por tanto, no será difícil que luego pupb2s utilizar otras funciones de enlace.
+Vamos a hacer una sub-base de nuestras posibles variables explicativas. Esto es importante porque sólo podemos comparar modelos con la misma cantidad de observaciones. Intentaremos predecir la participación económica
+
+
+# Regresión Logística
+
+## Un solo predictor
+
+```{r}
+modelo0<-glm(y_binomial ~ pb2, family = binomial("logit"), data=newdata, na.action=na.exclude)
+summary(modelo0)
+confint(modelo0)
+
+```
+
+Con jtools:
+```{r}
+summ(modelo0)
+```
+
+
+## Predicción de probabilidades
+Para predecir la probabilidad, primero chequemos el rango de nuestra variabe explicativa
+```{r}
+range(newdata$pb2)
+```
+
+Hacemos un vector con los valores que queremos predecir
+```{r}
+xpb2 <- 18:98
+```
+
+Vamos a utilizar el comando "predict" para predecir los valores. Podemos el argumento "response" para que nos dé el logito
+```{r}
+y_logito <- predict(modelo0, list(pb2 = xpb2))
+y_prob<- predict(modelo0, list(pb2 = xpb2), type= "response")
+
+results_m0<-cbind(y_logito, y_prob, xpb2)
+results_m0<-as.data.frame(results_m0)
+```
+
+Hoy podemos graficar
+
+
+```{r}
+ggplot(data=results_m0, aes(x=xpb2, y=y_prob)) +
+  geom_point()
+
+```
+
+## Coeficientes exponenciados
+
+Para interpretar mejor los coeficientes suelen exponenciarse y hablar de las veces que aumentan o disminuyen los momios con respecto a la unidad como base
+
+```{r}
+
+exp(coef(modelo0))
+
+```
+
+
+Es muy fácil con la librería jtools, sacar los coeficientes exponenciados. La ventaja es que nos dan también los intervalos:
+```{r}
+summ(modelo0, exp=T )
+
+```
+
+## Agregando una variable 
+
+
+```{r}
+modelo1<-glm(y_binomial ~ pb2 + pb1, family = binomial("logit"), data=newdata, na.action=na.exclude)
+summary(modelo1)
+confint(modelo1)
+```
+
+Este modelo tiene coeficientes que deben leerse "condicionados". Es decir, en este caso tenemos que el coeficiente asociado a la pb2, mantiene constante el sexo y viceversa.
+
+Veamos con los valores exponenciados:
+
+```{r}
+
+```
+
+
+## Bondad de Ajuste
+
+### Devianza
+La devianza es una medida de la bondad de ajuste de los modelos lineales generalizados. O más bien, es una medida de la no-bondad del ajust, puesto que valores más altos indican un peor ajuste.
+
+R nos da medidas de devianza: la devianza nula y la desviación residual. La devianza nula muestra qué tan bien la variable de respuesta se predice mediante un modelo que incluye solo la intersección (gran media).
+
+ 
+### Prueba de Verosimilitud
+
+![image](lrtest.png)
+
+¿Cómo saber si ha mejorado nuestro modelo? Podemos hacer un test que compare las devianzas(tendría la misma lógica que nuestra prueba F del modelo lineal). Para esto tenemos que instalar un paquete "lmtest"
+```{r}
+lrtest0<-lrtest(modelo0, modelo1)
+lrtest0
+```
+
+Como puedes ver, el resultado muestra un valor p muy pequeño (<.001). Esto significa que agregar el sexo al modelo lleva a un ajuste significativamente mejor sobre el modelo original.
+
+Podemos seguir añadiendo variables sólo "sumando" en la función
+
+```{r}
+modelo2<-glm(y_binomial ~ pb2 + pb1 + pa1,
+             family = binomial("logit"), 
+             data=newdata, 
+             na.action=na.exclude)
+summary(modelo2)
+
+```
+
+
+
+
+Y podemos ver si introducir esta variable afectó al ajuste global del modelo
+```{r}
+lrtest1<-lrtest(modelo1, modelo2)
+lrtest1
+```
+
+
+
+### Test Hosmer-Lemeshow Goodness of Fit "GOF"
+El teste Homer-Lemeshow se calcula sobre los datos una vez que las observaciones se han segmentado en grupos basados en probabilidades predichas similares. 
+Este teste examina si las proporciones observadas de eventos son similares a las probabilidades predichas de ocurrencia en subgrupos del conjunto de datos, y lo hace con  una prueba de chi cuadrado de Pearson.
+
+¡Ojo! No queremos rechazar la hipótesis nula. LoLa hipótesis nula sostiene que el modelo se ajusta a los datos y en el siguiente ejemplo rechazamos H0. 
+
+```{r}
+
+hoslem.test(newdata$y_binomial, fitted(modelo2))
+
+```
+
+No obstante, esta prueba ha sido criticada. Checa la postura de Paul Allison <https://statisticalhorizons.com/hosmer-lemeshow>
+
+Es un problema que tenemos en muestras grandes.
+Casi siempre preferimos el enfoque de la devianza.
+
+
+
+## Tabla de modelos estimados
+
+```{r mylatextable}
+#stargazer(modelo0, modelo1,modelo2, type = 'latex', header=FALSE)
+
+```
+
+```{r mytextable2}
+stargazer(modelo0, modelo1,modelo2, 
+          type = 'text', header=FALSE)
+        
+
+```
+Para sacar los coeficientes exponenciados
+```{r}
+stargazer(modelo0, modelo1,modelo2, 
+          type = 'text', header=FALSE,
+          apply.coef = exp,
+          apply.se   = exp)
+
+```
+
+Veamos con jtools:
+
+```{r}
+export_summs(modelo0, modelo1,modelo2, exp=T)
+
+```
+
+
+También la librería "sjPlot" tiene el comando "plot_model()"
+
+```{r}
+plot_model(modelo2)
+```
+
+Por default nos da los coeficientes exponenciados.
+
+¿Cómo saber lo que tiene esos gráficos? Es bueno guardar siempre estos resultados en un objeto. Este objeto es una lista de dos listas
+
+```{r}
+get<-plot_model(modelo2)
+get$data
+
+```
+
+
+```{r}
+plot_model(modelo2, terms= c("pb2", "pb1"), type="pred")
+
+```
+
+Para poner más de un modelo:
+
+```{r}
+plot_models(modelo1, modelo2) + ggtitle("P(actividad económica)")
+```
+
+
+# Regresión Probit
+
+## Un solo predictor
+
+```{r}
+mprobit<-glm(y_binomial ~ pb2, family = binomial("probit"), data=newdata, na.action=na.exclude)
+summary(mprobit)
+
+
+```
+
+Comparando probit con logit:
+
+```{r}
+stargazer(modelo0, mprobit,   type = 'text', header=FALSE)
+```
+
+¿Cuál es la diferencia?
+
+
+<https://tutorials.methodsconsultants.com/posts/what-is-the-difference-between-logit-and-probit-models>.
+
+Y Allison:
+
+<https://statisticalhorizons.com/in-defense-of-logit-part-1>
+<https://statisticalhorizons.com/in-defense-of-logit-part-2>
+
+*Más sobre modelos generalizados*
+<https://www.statmethods.net/advstats/glm.html>
+
+# Regresión logística multinomial
+
+Hay varias librerías que nos permiten hacer este tipo de modelos:
+
+* mlogit, necesita que configuremos nuestros datos. 
+
+* nnet, no necesita que los cambiemos, pero no funcionaran algunas herramientas como el "summ" de jtools.
+
+Unas por otras.
+
+Veamos:
+
+```{r}
+mlogit <- multinom(clase2 ~ pb1 + pb2, data = newdata)
+
+summary(mlogit)
+
+```
+
+Veamos con "broom"
+```{r}
+ #summ(mlogit)
+tidy(mlogit)
+glance(mlogit)
+```
+
+
+
+
+
+```{r}
+plot_model(mlogit)
+```
+
+Con el otro paquete, primero tenemos que modificar los datos
+
+
+```{r}
+mlogit_dat<-mlogit.data(newdata, shape="wide", choice="clase2")
+head(mlogit_dat)
+```
+
+
+```{r}
+mlogit2 <- mlogit(clase2 ~ 0 |pb1 + pb2, data = mlogit_dat)
+summary(mlogit2)
+```
+
+
+```{r}
+export_summs(mlogit) # no funciona tan bien
+#export_summs(mlogit2) # no funciona nada
+
+```
+
+
+```{r}
+plot_model(mlogit2) # Queda un poco rarito
+```
+
+
+## Irrelevante e independiente
+
+<https://statisticalhorizons.com/iia>
+
+# Ejercicio:
+
+Corra un modelo logístico, multinomial o probit de acuerdo a sus datos. 
+
+Ingreso una variable primero y luego otra.
+
+1. Corra la prueba para verificar que vale la pena o no introducir la variable
+
+2. Presente sus resultados en alguna tabla o en algún gráfico. 
+
+Adjunte sus resultados a través del formulario.
+
+<https://forms.gle/3MsHeN3ntDjz5bXx6>
+
