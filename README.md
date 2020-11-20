@@ -93,6 +93,8 @@ d.	Introducción a otros modelos generalizados
 
 [Práctica 9](P9.md)
 
+[Sesión 9 - Grabación](https://youtu.be/sat4FRgDmlc)
+
 
 ## 5.	Aplicaciones relacionadas a la demografía I (8 horas)
 
