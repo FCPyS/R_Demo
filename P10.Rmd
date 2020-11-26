@@ -76,7 +76,7 @@ skimr::skim(pob_mit_proyecciones)
 ```
 
 
-# Pirámides
+## Edad y sexo
 
 La edad y sexo son de las variables más importantes en la demografía para explicar la estructura de una población. Las pirámides son parte esencial de lo que llamamos "Demografía estática"
 
@@ -315,7 +315,7 @@ Veamos si funciona:
 
 ```{r}
 piramide(1, 1990)
-piramide(1, 2020)
+piramide(12, 2050)
 
 ```
 
