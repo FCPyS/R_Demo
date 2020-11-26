@@ -67,6 +67,7 @@ c.	Gráficos univariados y bivariados usando “ggplot2”
 
 
 ## 4.	Modelos estadísticos con R (16 horas)
+*Objetivo: que el estudiantado sea capaz de realizar inferencia estadística y modelado de una variable dependiente utilizando las bases de datos más afines a sus temas de investigación.*
 
 a.	Pruebas de Hipótesis
 
@@ -88,7 +89,12 @@ c.	Modelos de regresión lineal
 
 d.	Introducción a otros modelos generalizados
 
-*Objetivo: que el estudiantado sea capaz de realizar inferencia estadística y modelado de una variable dependiente utilizando las bases de datos más afines a sus temas de investigación.*
+[Presentación](D9.pdf)
+
+[Práctica 9](P9.md)
+
+[Sesión 9 - Grabación](https://youtu.be/sat4FRgDmlc)
+
 
 ## 5.	Aplicaciones relacionadas a la demografía I (8 horas)
 
