@@ -106,6 +106,9 @@ c.	Consultas y descarga de información con paquetes como “IPUMSr”, “WDI�
 
 *Objetivo: que el estudiantado sea capaz de crear y utilizar funciones específicas para el análisis demográfico, tales como crear pirámides, colocar eventos en el diagrama de Lexis y hacer consultas desde R de fuentes de información.*
 
+[Práctica 10](P10.md)
+
+
 ## 6.	Aplicaciones a la demografía II (8 horas)
 
 a.	Estandarización de tasas y gráficos de crecimiento
