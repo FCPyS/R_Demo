@@ -299,15 +299,17 @@ Así que podemos hacer una función de pirámide:
 
 ```{r}
 piramide<-function(ent, ano) {
+ x<-ent
+ a<-ano 
   pob_mit_proyecciones %>% 
-  filter(cve_geo==ent) %>% 
-  filter(ano==ano) %>%  
-  ggplot(aes(eda5, fill=sexo, weights=poblacion3))+
+    filter(cve_geo==x) %>% 
+    filter(ano==a) %>%  
+    ggplot(aes(eda5, fill=sexo, weights=poblacion3))+
     geom_bar() + coord_flip() +
-   scale_y_continuous(labels = scales::percent_format(accuracy=0.01))+ 
-  labs(y="Poblacion - %", x="Grupos de edad") +
-  scale_fill_brewer(palette = "Set2") + 
-  theme_light() +   theme(axis.text.x  =  element_text(angle = 90))  
+    scale_y_continuous(labels = scales::percent_format(accuracy=0.01))+ 
+    labs(y="Poblacion - %", x="Grupos de edad") +
+    scale_fill_brewer(palette = "Set2") + 
+    theme_light()    
 }
 ```
 
