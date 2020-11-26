@@ -108,6 +108,7 @@ c.	Consultas y descarga de información con paquetes como “IPUMSr”, “WDI�
 
 [Práctica 10](P10.md)
 
+
 ## 6.	Aplicaciones a la demografía II (8 horas)
 
 a.	Estandarización de tasas y gráficos de crecimiento
