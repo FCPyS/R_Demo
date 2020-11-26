@@ -2,7 +2,12 @@
 title: "Práctica 10. Aplicaciones relacionadas a la demografía"
 author: "Ana Escoto"
 date: "26/11/2020"
-output: github_document
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
 ---
 
 ```{r setup, include=FALSE}
