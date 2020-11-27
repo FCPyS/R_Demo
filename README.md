@@ -108,6 +108,10 @@ c.	Consultas y descarga de información con paquetes como “IPUMSr”, “WDI�
 
 [Práctica 10](P10.md)
 
+[Sesión 10 - Grabación - Parte I](https://youtu.be/WcZD1UfjlAM)
+
+[Sesión 10 - Grabación - Parte II](https://youtu.be/KYVmybyXVT8)
+
 
 ## 6.	Aplicaciones a la demografía II (8 horas)
 
