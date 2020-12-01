@@ -113,6 +113,9 @@ c.	Consultas y descarga de información con paquetes como “IPUMSr”, “WDI�
 [Sesión 10 - Grabación - Parte II](https://youtu.be/KYVmybyXVT8)
 
 
+[Práctica 11](P11.md)
+
+
 ## 6.	Aplicaciones a la demografía II (8 horas)
 
 a.	Estandarización de tasas y gráficos de crecimiento
