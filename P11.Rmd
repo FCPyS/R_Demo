@@ -35,7 +35,7 @@ pacman::p_load(tidyverse,
                #jtools, lm.beta, robustbase, sandwich, effects,
                #officer,flextable,huxtable, ggstance, kableExtra, # Para la regresión práctica 8
                #ResourceSelection, lmtest, mlogit, nnet # Práctica 9
-                apyramid, LexisPlotR, ipumsr) # Práctica 10 y 11
+                apyramid, LexisPlotR, ipumsr,  fmsb ) # Práctica 10 y 11
 
 ```
 
@@ -308,6 +308,34 @@ data %>%
   scale_fill_brewer(palette = "Set2") + 
   theme_light() + facet_wrap(~COUNTRY_factor, scales="free") 
 
+```
+
+# Whipple
+
+Revisemos el índice de Whipple para Costa Rica:
+
+```{r}
+# sin expandir
+data %>%
+  filter(COUNTRY_factor=="Costa Rica") %>% 
+  mutate(eda=as.numeric(AGE)) %>% 
+  mutate(eda_w=if_else(
+    eda>63,
+    63,
+    eda)) %>% 
+  with(WhipplesIndex(eda_w))
+```
+```{r}
+# con expandir
+data %>%
+  filter(COUNTRY_factor=="Costa Rica") %>% 
+  mutate(eda=as.numeric(AGE)) %>% 
+  mutate(eda_w=if_else(
+    eda>63,
+    63,
+    eda)) %>% 
+    count(eda_w, wt=PERWT) %>% 
+  with(WhipplesIndex(n))
 ```
 
 
