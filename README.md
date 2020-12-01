@@ -112,7 +112,6 @@ c.	Consultas y descarga de información con paquetes como “IPUMSr”, “WDI�
 
 [Sesión 10 - Grabación - Parte II](https://youtu.be/KYVmybyXVT8)
 
-
 [Práctica 11](P11.md)
 
 
