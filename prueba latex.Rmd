@@ -1,0 +1,47 @@
+---
+title: "Untitled"
+author: "Ana Escoto"
+date: "5/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
+% Date and time: Thu, Nov 05, 2020 - 12:51:28
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{3}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-4} 
+\\[-1.8ex] & \multicolumn{3}{c}{log\_hrs} \\ 
+\\[-1.8ex] & (1) & (2) & (3)\\ 
+\hline \\[-1.8ex] 
+ pb2 & $-$0.003$^{**}$ & $-$0.004$^{***}$ & $-$0.004$^{***}$ \\ 
+  & (0.001) & (0.001) & (0.001) \\ 
+  & & & \\ 
+ as\_label(pb1)Mujer &  & $-$0.311$^{***}$ & $-$0.311$^{***}$ \\ 
+  &  & (0.036) & (0.036) \\ 
+  & & & \\ 
+ pa1 &  &  & $-$0.005 \\ 
+  &  &  & (0.009) \\ 
+  & & & \\ 
+ Constant & 3.320$^{***}$ & 3.476$^{***}$ & 3.503$^{***}$ \\ 
+  & (0.056) & (0.058) & (0.073) \\ 
+  & & & \\ 
+\hline \\[-1.8ex] 
+Observations & 2,452 & 2,452 & 2,452 \\ 
+R$^{2}$ & 0.002 & 0.032 & 0.032 \\ 
+Adjusted R$^{2}$ & 0.002 & 0.031 & 0.031 \\ 
+Residual Std. Error & 0.886 (df = 2450) & 0.873 (df = 2449) & 0.873 (df = 2448) \\ 
+F Statistic & 4.989$^{**}$ (df = 1; 2450) & 40.505$^{***}$ (df = 2; 2449) & 27.113$^{***}$ (df = 3; 2448) \\ 
+\hline 
+\hline \\[-1.8ex] 
+\textit{Note:}  & \multicolumn{3}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\ 
+\end{tabular} 
+\end{table} 
