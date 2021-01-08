@@ -121,6 +121,9 @@ a.	Estandarización de tasas y gráficos de crecimiento
 
 [Práctica 12](P12.md)
 
+[Sesión 12 - Grabación - Parte 1](https://youtu.be/mesoQwDabFI)
+
+[Sesión 12 - Grabación - Parte 2](https://youtu.be/SM9-sSff5ew)
 
 b.	Paquete “demography”: cálculo de tablas de vida y tasas de mortalidad y fecundidad
 
