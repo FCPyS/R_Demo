@@ -129,6 +129,7 @@ b.	Paquete “demography”: cálculo de tablas de vida y tasas de mortalidad y 
 
 *Objetivo: que el estudiantado sea capaz de replicar tablas de vida y tasas de mortalidad utilizando el paquete especializado*
 
+
 [Práctica 13](P13.md)
 
 
