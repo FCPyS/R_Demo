@@ -2644,7 +2644,8 @@ mx5</code></pre>
 ## 22 9.439930e-06 6.587263e-06
 ## 23 7.621627e-07 5.661780e-07</code></pre>
 <p>La suma de eso será la tasa:</p>
-<pre class="r"><code>sum(mx5[1:23,3:4]*c[1:23, 3:4])</code></pre>
+<pre class="r"><code>tbm1995&lt;-sum(mx5[1:23,3:4]*c[1:23, 3:4])
+tbm1995</code></pre>
 <pre><code>## [1] 0.005044515</code></pre>
 <p>Hoy veamos para 2015:</p>
 <pre class="r"><code>mx5[24:46,3:4]*c[24:46, 3:4]</code></pre>
@@ -2672,9 +2673,14 @@ mx5</code></pre>
 ## 44 8.425369e-05 5.574061e-05
 ## 45 2.263741e-05 1.409997e-05
 ## 46 2.406307e-06 1.458617e-06</code></pre>
-<p>La tasa bruta de mortalidad bruta sera:</p>
-<pre class="r"><code>sum(mx5[24:46,3:4]*c[24:46, 3:4])</code></pre>
+<p>La tasa bruta de mortalidad bruta será:</p>
+<pre class="r"><code>tbm2015&lt;-sum(mx5[24:46,3:4]*c[24:46, 3:4])
+tbm2015</code></pre>
 <pre><code>## [1] 0.005784703</code></pre>
+<p>Una estandarización sería usar la “c” de una de las poblaciones, como la de 2015</p>
+<pre class="r"><code>tnm_95_15&lt;-sum(mx5[1:23,3:4]*c[24:46, 3:4]) # 1995 con la c de 2015
+tnm_95_15</code></pre>
+<pre><code>## [1] 0.006625538</code></pre>
 <p>Para estandarizar, cambiamos las “c”, normalmente lo que se hace usar una <span class="math inline">\(\bar c\)</span>:</p>
 <pre class="r"><code>c_barra&lt;-c[24:46, 3:4]/2+c[1:23, 3:4]/2
 c_barra</code></pre>
@@ -2703,11 +2709,84 @@ c_barra</code></pre>
 ## 22 3.906831e-05 2.499047e-05
 ## 23 2.494071e-06 1.608209e-06</code></pre>
 <p>Vamos a sacar las tasas estandarizadas.</p>
-<pre class="r"><code>sum(mx5[mx5$Year==1995,3:4]*c_barra) # 1995</code></pre>
+<pre class="r"><code>tnm1995&lt;-sum(mx5[mx5$Year==1995,3:4]*c_barra) # 1995
+tnm1995</code></pre>
 <pre><code>## [1] 0.005835027</code></pre>
-<pre class="r"><code>sum(mx5[mx5$Year==2015,3:4]*c_barra) # 2015</code></pre>
+<pre class="r"><code>tnm2015&lt;-sum(mx5[mx5$Year==2015,3:4]*c_barra) # 2015
+tnm2015</code></pre>
 <pre><code>## [1] 0.005011785</code></pre>
-<p>¡Es muy importante estandarizas!</p>
+<p>¡Es muy importante estandarizar!</p>
+</div>
+<div id="discrepancias" class="section level2">
+<h2>Discrepancias</h2>
+<p>¿Qué parte de la diferencia de las tasas se debe al cambio etario y cuál al cambio de los riesgos de morir? Siguiendo a Kitagawa en Partida(mimeo), tenemos:</p>
+<p><span class="math display">\[ d^{2015}-d^{1995}= \sum_{n=i}^{\omega}(c_i^{2015}-c_i^{1995})\frac{(Mx_i^{2015}+Mx_i^{1995})}2 + \sum_{n=i}^{\omega}(Mx_i^{2015}-Mx_i^{1995})\frac{(c_i^{2015}+c_i^{1995})}2  \]</span></p>
+<blockquote>
+<p>El primer sumando en el lado derecho, esto es, la diferencia de las estructuras etarias pon- derada por el promedio de las tasas especÌÖcas, mide el efecto de la disimiltud en las com- posiciones por edad; y el segundo, la diferencia de las pautas etarias de las tasas específicas ponderada por el promedio de las composiciones por edad de la población, da cuenta de la diferencia en el riesgo medio de morir (Partida,2013:p.63).</p>
+</blockquote>
+<pre class="r"><code>diff&lt;-tbm2015-tbm1995
+diff</code></pre>
+<pre><code>## [1] 0.0007401877</code></pre>
+<p>Caculemos el primer elemento</p>
+<pre class="r"><code>(c[24:46, 3:4]-c[1:23, 3:4])*((mx5[mx5$Year==2015,3:4]+mx5[mx5$Year==1995,3:4])/2)</code></pre>
+<pre><code>##           Female          Male
+## 1  -6.732460e-05 -8.580133e-05
+## 2  -1.119917e-05 -1.308167e-05
+## 3  -4.686346e-06 -5.893984e-06
+## 4  -4.118874e-06 -6.536192e-06
+## 5  -5.088002e-06 -9.213951e-06
+## 6  -3.511340e-06 -5.179360e-06
+## 7  -5.452632e-07 -1.785234e-07
+## 8   2.539588e-06  2.662681e-06
+## 9   8.702948e-06  1.240536e-05
+## 10  2.122225e-05  3.555174e-05
+## 11  3.494363e-05  5.585183e-05
+## 12  5.052356e-05  7.487929e-05
+## 13  6.491822e-05  8.966228e-05
+## 14  7.035412e-05  8.984928e-05
+## 15  7.614960e-05  8.993061e-05
+## 16  8.974491e-05  9.922147e-05
+## 17  1.080676e-04  1.089427e-04
+## 18  1.147847e-04  1.034555e-04
+## 19  9.884585e-05  7.844997e-05
+## 20  7.079305e-05  4.825506e-05
+## 21  3.896147e-05  2.324977e-05
+## 22  1.312133e-05  7.303442e-06
+## 23  1.592063e-06  8.523531e-07</code></pre>
+<pre class="r"><code>desc_1 &lt;-sum((c[24:46, 3:4]-c[1:23, 3:4])*((mx5[mx5$Year==2015,3:4]+mx5[mx5$Year==1995,3:4])/2))
+desc_1</code></pre>
+<pre><code>## [1] 0.00156343</code></pre>
+<p>El segundo elemento:</p>
+<pre class="r"><code>(mx5[mx5$Year==2015,3:4]-mx5[mx5$Year==1995,3:4])*c_barra</code></pre>
+<pre><code>##           Female          Male
+## 24 -1.284085e-04 -1.660185e-04
+## 25 -2.552852e-05 -2.791532e-05
+## 26 -6.972875e-06 -9.821343e-06
+## 27 -2.967364e-06 -6.894203e-06
+## 28 -1.771910e-06 -5.445340e-06
+## 29 -1.829522e-06 -5.996716e-06
+## 30 -3.235227e-06 -9.476597e-06
+## 31 -6.162507e-06 -1.336117e-05
+## 32 -9.728802e-06 -1.586444e-05
+## 33 -1.359884e-05 -1.744697e-05
+## 34 -1.738257e-05 -1.845039e-05
+## 35 -2.128352e-05 -1.916645e-05
+## 36 -2.507821e-05 -1.970610e-05
+## 37 -2.796446e-05 -1.943009e-05
+## 38 -2.885987e-05 -1.719565e-05
+## 39 -2.836876e-05 -1.433724e-05
+## 40 -2.546984e-05 -1.060530e-05
+## 41 -2.068250e-05 -6.812758e-06
+## 42 -1.336935e-05 -3.215888e-06
+## 43 -5.999761e-06 -7.825651e-07
+## 44 -1.254143e-06  2.404676e-07
+## 45  7.615186e-08  2.092621e-07
+## 46  5.208082e-08  4.008614e-08</code></pre>
+<pre class="r"><code>desc_2&lt;-sum((mx5[mx5$Year==2015,3:4]-mx5[mx5$Year==1995,3:4])*c_barra)
+desc_2</code></pre>
+<pre><code>## [1] -0.000823242</code></pre>
+<pre class="r"><code>desc_1+desc_2</code></pre>
+<pre><code>## [1] 0.0007401877</code></pre>
 <p>#Ejercicio</p>
 <ol style="list-style-type: decimal">
 <li><p>con otro estado que no sea la República Mexicana, y presente todo el código y los resultados hasta la Esperanza de Vida en México.</p></li>
