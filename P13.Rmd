@@ -384,14 +384,11 @@ tnm2015
 
 ## Discrepancias
 
-¿Qué parte de la diferencia de las tasas se debe al cambio etario y cuál al cambio de los riesgos de morir? Siguiendo a Kitagawa en Partida(mimeo), tenemos:
+¿Qué parte de la diferencia de las tasas se debe al cambio etario y cuál al cambio de los riesgos de morir? Siguiendo a Kitagawa en Partida(2013), tenemos:
 
 $$ d^{2015}-d^{1995}= \sum_{n=i}^{\omega}(c_i^{2015}-c_i^{1995})\frac{(Mx_i^{2015}+Mx_i^{1995})}2 + \sum_{n=i}^{\omega}(Mx_i^{2015}-Mx_i^{1995})\frac{(c_i^{2015}+c_i^{1995})}2  $$
 
->El primer sumando en el lado derecho, esto es, la diferencia de las estructuras etarias pon-
-derada por el promedio de las tasas especÌÖcas, mide el efecto de la disimiltud en las com-
-posiciones por edad; y el segundo, la diferencia de las pautas etarias de las tasas específicas ponderada por el promedio de las composiciones por edad de la población, da cuenta de la
-diferencia en el riesgo medio de morir (Partida,2013:p.63).
+>El primer sumando en el lado derecho, esto es, la diferencia de las estructuras etarias ponderada por el promedio de las tasas específicas, mide el efecto de la disimiltud en las composiciones por edad; y el segundo, la diferencia de las pautas etarias de las tasas específicas ponderada por el promedio de las composiciones por edad de la población, da cuenta de la diferencia en el riesgo medio de morir (Partida,2013:p.63).
 
 
 ```{r}
