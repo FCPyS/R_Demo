@@ -1,0 +1,382 @@
+---
+title: "Práctica 13. Aplicaciones relacionadas a la demografía (IV)"
+author: "Ana Escoto"
+date: "14/01/2021"
+output: 
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Previo
+
+## Paquetería
+
+```{r}
+#install.packages("collapse")
+if (!require("pacman")) install.packages("pacman") # instala pacman si se requiere
+pacman::p_load(tidyverse, 
+               readxl,writexl, # importar hojas de cálculo
+               haven, foreign, # importación de dta y sav
+               janitor, skimr, #limpieza y verificación
+               imputeTS, # para imputar valores
+               esquisse, # para usar ggplot de manera más amigable
+               demography) # para tabla de vida
+
+```
+
+## Directorio
+En caso que no tengas un proyecto,establecer el directorio puede ayudar
+
+```{r 1}
+rm(list=ls()) # mala práctica pero quizás necesaria porque vamos a cambiar de tema
+setwd("/Users/anaescoto/Dropbox/2020/2021-1 R para Demográfos/repo/R_Demo")
+```
+
+# Construcción de la tabla de vida
+
+Código para revisar algunos elementos de Mortalidad en México
+ Parte de este código está tomado de acá http://www.ub.edu/rfa/R/life_tables.html 
+
+## Insumo 1. Población expuesta al riesgo
+
+Nuestros denominadores es la población al 1 de julio, proyectada por Conapo
+Contiene 1950-2050 para República Mexicana
+
+La edad es singular
+Debemos llegar al formato de HMD para que el paquete demography lo lea correctamente
+
+### Importar desde CONAPO
+Necesitamos para aproximarnos al tiempo vivido, la población a mitad del año. Esto lo podemos importar con el siguiente código.
+
+```{r}
+
+pob_1jul0 <- read_csv("https://github.com/aniuxa/R_Demo/raw/master/datos/pob_mit_proyecciones.csv",
+                     locale = locale(encoding = "latin1"))
+
+```
+Vamos a limpiar los nombres
+```{r}
+pob_1jul0<-clean_names(pob_1jul0) #limpia los nombres
+
+```
+
+### Dar formato a la información
+
+Los siguientes códigos sirven para poner esta información en formado de la HMD (por ejemplo: http://www.ub.edu/rfa/R/Exposures_1x1SPAIN.txt )
+
+
+```{r}
+
+pob_1jul0<-pob_1jul0 %>% 
+  select(-renglon) %>%  #quita la variable renglón
+  filter(cve_geo==0) %>% # selecciona la República Mexicana, si se quiere otro estado se puede modificar
+  select(-c(entidad,cve_geo)) # quita estas variables que no están en el formato
+
+pob_1jul0
+
+```
+
+Para parecerse más a nuestro formato, vamos usar un pivot_wider:
+```{r}
+
+pob_1jul_sex<-pob_1jul0 %>% 
+  pivot_wider(names_from = sexo, values_from = poblacion) ## Ordena por sexo
+pob_1jul_sex
+```
+
+Nos faltan los totales:
+
+```{r}
+pob_1jul_tot<-pob_1jul0 %>% 
+  group_by(ano, edad) %>% 
+  tally(poblacion) %>% 
+  rename(Total=n) # genera el total
+
+pob_1jul_tot
+```
+
+Juntamos y pues, renombramos
+```{r}
+
+pob_1jul<-inner_join(pob_1jul_sex, pob_1jul_tot, by=c("ano", "edad")) # fusionamos los dos objetos 
+
+names(pob_1jul)<-c( "Year",  "Age", "Male", "Female","Total") # ponemos los nombres
+```
+
+Podríamos haber hecho la suma, pero piensa que a veces hay no especificados en sexo.
+
+Un elemento fundamental del formato de HMD es que los datos existen hasta la edad "110+". El formato de CONAPO sólo tiene hasta 109. Por ello tenemos que agregar estas líneas. De lo contario no se pueden importar:
+
+```{r}
+ages<-as.data.frame(1950:2050)
+names(ages)<-"Year"
+ages$Age<-110
+
+ages
+```
+Hacemo un merge:
+```{r}
+pob_1jul<-merge(pob_1jul, ages, by=c("Year","Age"), all=T)
+
+```
+
+
+
+Finalmente ordenamos la información:
+
+```{r}
+col_order <- c( "Year",      "Age",     "Female", "Male",      "Total")
+pob_1jul <- pob_1jul[, col_order]
+pob_1jul <-pob_1jul[order(pob_1jul$Year,pob_1jul$Age),]
+
+pob_1jul<-na_replace(pob_1jul, 0) # elimina los missings por ceros
+```
+
+## Archivo listo
+Finalmente exportamos esto en un formado txt. Este archivo debe estar en nuestro directorio de trabajo, o en nuestro proyecto. 
+```{r}
+
+write.table(pob_1jul, file = "exposure.txt", sep = "\t", row.names = F) # exporta el archivo en formato separados por tabs
+
+```
+
+Podemos borrar los objetos que ya no utilizamos
+```{r}
+rm(pob_1jul_sex, pob_1jul_tot, pob_1jul0)
+```
+
+## Insumo 2  Numeradores - Muertes 
+
+### Importar desde Conapo
+
+Al igual que con la población a mitad del año, vamos a importar las defunciones. Es muy parecido así que seremos más escuetos con la descripción:
+
+```{r}
+defunciones0 <-read.csv("https://github.com/aniuxa/R_Demo/raw/master/datos/def_edad_proyecciones_n.csv")
+
+defunciones0<-clean_names(defunciones0)
+```
+
+
+### Dar formato a la información
+
+Los siguientes códigos sirven para poner esta información en formado de la HMD (por ejemplo: http://www.ub.edu/rfa/R/Mx_1x1SPAIN.txt)
+
+
+```{r}
+defunciones0<-defunciones0 %>% 
+  select(-renglon) %>%  #quita la variable renglón
+  filter(cve_geo==0) %>% # selecciona la República Mexicana, si se quiere otro estado se puede modificar
+  select(-c(entidad,cve_geo)) # quita estas variables que no están en el formato
+
+defunciones_sex<-defunciones0 %>% 
+  pivot_wider(names_from = sexo, values_from = defunciones)
+
+defunciones_tot<-defunciones0 %>% 
+  group_by(ano, edad) %>% 
+  tally(defunciones) %>% 
+  rename(Total=n)
+
+defunciones<-inner_join(defunciones_sex, defunciones_tot, by=c("ano", "edad"))
+names(defunciones)<-c( "Year",  "Age", "Male", "Female","Total")
+
+```
+
+Finalmente ordenamos la información
+```{r}
+
+defunciones<-merge(defunciones, ages, by=c("Year","Age"), all=T)
+defunciones <- defunciones[, col_order]
+defunciones <-defunciones[order(defunciones$Year,defunciones$Age),]
+
+defunciones<-na_replace(defunciones, 0)
+
+rm(defunciones_sex,defunciones_tot, defunciones0)
+```
+
+
+## Cálculo de mx
+El segundo insumo nos pide las tasas de mortalidad. Por lo que podemos calcularlas haciendo la división entre nuestros objetos (de ahí que se muy importante haberlo ordenado bien)
+
+```{r}
+mx_mex<-defunciones[,3:5]/pob_1jul[,3:5]
+mx_mex<-cbind(defunciones[,1:2], mx_mex)
+
+mx_mex<-na_replace(mx_mex,0)
+write.table(mx_mex, file = "mx.txt", sep = "\t", row.names = F)
+```
+
+# Leyendo desde demography
+
+Una vez que ya tenemos listos nuestros dos archivos de insumos, podemos leer esta información con el comando read.demogdata().
+
+Revisemos los argumentos:
+```{r}
+
+mex<-read.demogdata("mx.txt",
+                    "exposure.txt",
+                    type="mortality",
+                    label="Mexico",
+                    skip=0,
+                    popskip = 0, 
+                    scale=1) 
+
+```
+
+Una vez que ya tenemos este objeto, podemos utilizarlo fácilmente en distintos comandos del paquete. Revisaremos un par 
+
+## Gráfico de las tasas de mortalidad por sexo
+```{r}
+plot(mex,series="Male", plot.type="functions")
+plot(mex,series="Female", plot.type="functions")
+```
+
+
+## Creando y graficando  Tabla de vida
+
+El paquete, calcula la tabla de vida:
+
+```{r}
+mex.ltM <- lifetable(mex, series="male")
+
+lt2000male <- print(lifetable(mex, series="male",year=2000))
+lt2000male
+lt2000female <- print(lifetable(mex, series="female",year=2000))
+lt2000female
+```
+
+## La esperanza de vida
+```{r}
+life.expectancy(mex)
+plot(life.expectancy(mex),ylab="Esperanza de vida - México")
+
+```
+
+
+#Estandarización de tasas
+
+Vamos a volver a nuestros grupos quinquenales, dejando la mortalidad infantil aparte:
+
+```{r}
+pob<-pob_1jul %>% 
+  filter(Year%in%c(1995,2015)) %>% 
+  mutate(eda5=cut(Age, # la variable a cortar
+                  breaks=c(0,1, # para dejar la mortalidad infantil
+                           seq(5,110, # El rango válido
+                             by=5)), # El ancho del intervalo
+                  include.lowest=T, # para que incluya el valor más bajo dentro del intervalo
+                  right=F)) # indica si el intervalo irá abierto en la derecha, ponemos un no con "FALSE"
+```
+
+Vamos a volverlo quinquenal:
+
+```{r}
+pob<-pob %>%
+  group_by(Year,eda5) %>% 
+    collapse::fsum() %>% 
+  select(-c(Age, Total)) %>% 
+  ungroup()
+
+pob
+```
+
+Lo mismo hacemos con las defunciones:
+
+```{r}
+
+def<-defunciones %>% 
+  filter(Year%in%c(1995,2015)) %>% 
+  mutate(eda5=cut(Age, # la variable a cortar
+                  breaks=c(0,1, # para dejar la mortalidad infantil
+                           seq(5,110, # El rango válido
+                             by=5)), # El ancho del intervalo
+                  include.lowest=T, # para que incluya el valor más bajo dentro del intervalo
+                  right=F)) # indica si el intervalo irá abierto en la derecha, ponemos un no con "FALSE"
+def<-def %>%
+  group_by(Year,eda5) %>% 
+    collapse::fsum() %>% 
+  select(-c(Age, Total)) %>% 
+  ungroup()
+
+
+def
+```
+
+
+```{r}
+mx5<-def[,3:4]/pob[,3:4]
+mx5<-cbind(pob[,1:2], mx5)
+mx5
+```
+
+Nuestra "c" en este formato será más facil de calcular:
+```{r}
+
+c<-pob %>% 
+    group_by(Year) %>% 
+    mutate(c_f=Female/(sum(Female)+sum(Male)),
+           c_m=Male/(sum(Female)+sum(Male))) %>% 
+    select(-c(Female, Male)) %>% 
+    rename(Female=c_f, Male=c_m) %>% 
+  ungroup()
+  
+```
+
+Si "recordamos":
+
+$$ TBM= \sum_{n=i}^{\omega}c_i*Mx_i $$
+
+Para año 1995:
+```{r}
+mx5[1:23,3:4]*c[1:23, 3:4]
+```
+
+La suma de eso será la tasa:
+```{r}
+sum(mx5[1:23,3:4]*c[1:23, 3:4])
+
+```
+
+Hoy veamos para 2015:
+```{r}
+mx5[24:46,3:4]*c[24:46, 3:4]
+
+```
+La tasa bruta de mortalidad bruta sera:
+```{r}
+sum(mx5[24:46,3:4]*c[24:46, 3:4])
+
+```
+
+Para estandarizar, cambiamos las "c", normalmente lo que se hace usar una $\bar c$:
+
+```{r}
+c_barra<-c[24:46, 3:4]/2+c[1:23, 3:4]/2
+c_barra
+```
+
+Vamos a sacar las tasas estandarizadas.
+
+```{r}
+sum(mx5[mx5$Year==1995,3:4]*c_barra) # 1995
+sum(mx5[mx5$Year==2015,3:4]*c_barra) # 2015
+
+```
+
+¡Es muy importante estandarizas!
+
+#Ejercicio
+
+1. con otro estado que no sea la República Mexicana, y presente todo el código y los resultados hasta la Esperanza de Vida en México.
+
+2. Compare las tasas de mortalidad de ese mismo estado entre 2005 y 2015, usando las tasas estandarizadas de mortalidad.
+
+
+Envíe los resultados por acá: <https://forms.gle/6LXmG59AZiTWmDtH7>

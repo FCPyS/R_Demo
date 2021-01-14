@@ -1,0 +1,420 @@
+---
+title: "Práctica 12. Aplicaciones relacionadas a la demografía (III)"
+author: "Ana Escoto"
+date: "06/01/2021"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Previo
+
+## Paquetería
+
+```{r}
+if (!require("pacman")) install.packages("pacman") # instala pacman si se requiere
+pacman::p_load(tidyverse, 
+               readxl,writexl, # importar hojas de cálculo
+               haven, foreign, # importación de dta y sav
+               janitor, skimr, #limpieza y verificación
+               imputeTS, # para imputar valores
+               esquisse) # para usar ggplot de manera más amigable
+
+```
+
+## Directorio
+En caso que no tengas un proyecto,establecer el directorio puede ayudar
+
+```{r 1}
+rm(list=ls()) # mala práctica pero quizás necesaria porque vamos a cambiar de tema
+setwd("/Users/anaescoto/Dropbox/2020/2021-1 R para Demográfos/repo/R_Demo")
+```
+
+## Fechas censales y tasas de crecimiento
+
+```{r}
+url <- "https://github.com/aniuxa/R_Demo/raw/master/datos/censos.xlsx"
+
+destfile <- "censos.xlsx"
+curl::curl_download(url, destfile)
+
+censos <- read_excel(destfile, 
+                     col_types = c("numeric","date", "numeric"))
+
+
+```
+Un elemento fundamental es encontrar los periodos intercensales en años. Los censos tienen diferentes fechas.
+
+```{r}
+censos<-censos %>%
+    mutate(dias = c(NA, diff(fecha))) %>% 
+    mutate(n=dias/365) %>% 
+  clean_names
+
+censos  
+
+```
+
+Con esta base ya podemos ir calculando diferentes tipos de crecimiento básicos.
+
+### Ritmo
+
+$$ ritmo=\frac{P_{t+n}}{P_t} $$
+```{r}
+censos<-censos %>% 
+   mutate(ritmo = poblacion/lag(poblacion))
+censos
+```
+
+### Crecimiento
+
+$$ c=\frac{P_{t+n}-{P_t}}{P_t} =\frac{P_{t+n}}{P_t}-1 $$
+
+Básicamente es el ritmo menos 1
+
+```{r}
+censos<-censos %>% 
+   mutate(c = ritmo-1)
+censos
+```
+
+### Crecimiento aritmético
+
+$$ r_a=\frac{P_{t+n}-{P_t}}{n*P_t} =\frac{c}n $$
+Básicamente es el crecimiento entre el periodo intercensal.
+```{r}
+censos<-censos %>% 
+   mutate(ra = c/n)
+censos
+```
+
+### Crecimiento geométrico
+
+$$ r_g=\sqrt[n]\frac{P_{t+n}}{{P_t}}-1 $$ 
+Es la raíz n-ésima del ritmo menos 1
+
+```{r}
+censos<-censos %>% 
+   mutate(rg = ritmo^(1/n)-1)
+censos
+```
+
+### Crecimiento exponencial
+
+$$ r=\frac{ln\frac{P_{t+n}}{{P_t}}}n$$ 
+
+Básicamente es logaritmo del ritmo entre n
+```{r}
+censos<-censos %>% 
+   mutate(r = log(ritmo)/n)
+censos
+```
+
+Este crecimiento es el más utilizado. 
+
+Podemos graficar los diferentes crecimientos, será más fácil si cambiamos el formato
+```{r}
+censos %>% 
+  select(c(ano, ra, rg, r)) %>% 
+  pivot_longer(-ano, names_to = "tipo", values_to = "crecimiento") 
+  
+```
+
+```{r}
+censos %>% 
+  select(c(ano, ra, rg, r)) %>% 
+  pivot_longer(-ano, names_to = "tipo", values_to = "crecimiento") %>% 
+  ggplot(aes(ano,crecimiento, group=tipo, color=tipo)) + 
+  geom_line() + theme_minimal()
+           
+```
+
+Con estas tasas de crecimiento también podemos hacer estimaciones de tiempo y de poblaciones en fechas específicas.
+
+### Proyeccion
+
+$$ P_{t+n}= P_t * e^{nr} $$
+Vamos a proyectar la población al primero de julio de 2009
+
+```{r}
+n<-difftime(as.Date("2009-07-1"),
+        as.Date("2000-02-14"))
+n
+
+n<-as.numeric(n/365)
+
+n
+```
+
+```{r}
+ptn=censos[11,"poblacion"]*exp(n*censos[12,10])
+paste(ptn) # para ver los decimales
+```
+
+
+### Tiempo
+
+$$ n=\frac{ln\frac{P_{t+n}}{{P_t}}}r$$ 
+
+¿Cuánto tiempo tardaría en duplicarse la población del último censo?
+
+```{r}
+n_calc<-log(2*censos[12,"poblacion"]/censos[12,"poblacion"])/censos[12,"r"]
+n_calc
+
+
+```
+¿En qué fecha se llegaría ese valor?
+
+```{r}
+library(lubridate) # este paquetito es una maravilla para el uso de fechas. Nos da más control
+
+ymd("2010/06/12") + days(round(n_calc*365,0))
+```
+
+## Mexico, tabulados 
+
+
+Vamos a trabajar con los datos de IPUMS para México. Esto nos va a permitir tener totales para grupos de edad y vamos a automatizar las tasas de crecimientos y los cálculos de las poblaciones medias.
+
+Esta consulta se hizo en los tabulados de INEGI: https://www.inegi.org.mx/programas/ccpv/cpvsh/#Tabulados
+
+
+```{r}
+pob_censo<- read.csv("https://raw.githubusercontent.com/aniuxa/R_Demo/master/datos/INEGI_Exporta_20210105163526.csv", 
+                     encoding = "latin1", 
+                     skip=3)
+```
+
+
+Vamos a limpiar un poco esto:
+
+```{r}
+pob_censo<-pob_censo[-c(70:74),-c(4,6,8)] # quitamos los últimos renglones y la última columna
+
+pob_censo<-clean_names(pob_censo)
+```
+
+vamos a renombrar
+```{r}
+pob_censo<-pob_censo %>% 
+  rename(sexo=x, edad=x_1)
+pob_censo
+
+```
+
+Vamos a limpiar un poco la variable "edad", de paso nos sirve para revisar algunas opciones del paquete "stringr"
+```{r}
+pob_censo<-pob_censo %>%
+  mutate(edad=str_remove(edad,"De ")) %>% 
+  mutate(edad=str_remove(edad," años")) %>% 
+  mutate(edad=str_replace(edad," a ", "-")) 
+
+pob_censo
+```
+
+
+Vamos a hacerla "long"
+
+
+```{r}
+pob_censo<-pob_censo %>% 
+  pivot_longer(c(x1990:x2010), names_to="ano", values_to="poblacion") %>% 
+  mutate(ano=parse_number(ano)) %>% 
+  mutate(poblacion=parse_number(poblacion))
+
+pob_censo
+```
+
+
+Esta base se puede agrupar y es mucho más sencilla de trabajar
+
+```{r}
+pob_censo <-pob_censo %>% 
+ group_by(sexo,edad) %>% #este es un paso esencial 
+  mutate(ritmo = poblacion/lag(poblacion)) %>% 
+  ungroup()
+
+pob_censo
+```
+
+Aquí no tenemos las fechas pero podemos hacer un merge, de nuestras "n" ya calculadas anteriormente:
+
+```{r}
+pob_censo<-pob_censo %>% 
+  merge(censos[,c("ano","fecha", "n")], by="ano", all.x = T)
+```
+
+
+Podemos comparar hoy el crecimiento entre los grupos de edad:
+
+```{r}
+pob_censo <- pob_censo %>% 
+  mutate(r = log(ritmo)/n)
+
+pob_censo
+  
+```
+
+Con un gráfico veremos mejor:
+
+
+```{r}
+pob_censo %>% 
+  filter(edad!="No especificado") %>% 
+  na.omit() %>% 
+  ggplot(aes(x=edad,y=r, fill=sexo)) +
+    geom_bar(stat="identity", position="dodge") +
+    facet_wrap(~ano) + theme_minimal()
+```
+
+¿Qué podemos hacer con el orden de la variable "edad"?
+
+```{r}
+order_edad<-c(unique(pob_censo$edad))
+order_edad<-sort(order_edad)
+order_edad
+order_edad<-c(order_edad[c(1,11,2)], #primeros tres grupos
+              order_edad[4:10], # hasta antes de la posición 11
+              order_edad[12:21], # el resto
+              order_edad[3],#último grupo
+              "Total")
+order_edad
+```
+
+
+```{r}
+pob_censo %>% 
+  filter(edad!="No especificado") %>% 
+    na.omit() %>% 
+  mutate(edad=factor(edad, levels=order_edad)) %>% 
+  ggplot(aes(x=edad,y=r, fill=sexo)) +
+    geom_bar(stat="identity", position="dodge") +
+    facet_wrap(~ano) + theme_minimal() +theme(axis.text.x  =  element_text(angle = 90)) 
+  
+```
+
+
+```{r}
+pob_censo %>% 
+  filter(edad!="No especificado") %>% 
+    na.omit() %>% 
+  mutate(edad=factor(edad, levels=order_edad)) %>% 
+  ggplot(aes(x=edad,y=r, fill=as_factor(ano))) +
+    geom_bar(stat="identity", position="dodge") + coord_flip() +
+    facet_wrap(~sexo, ncol=2) + theme_minimal()  
+  
+```
+
+Podemos hacer un gráfico para ver cuáles grupos tienen mayor tasa de crecimiento:
+
+```{r}
+pob_censo %>% 
+  filter(edad!="No especificado") %>% 
+    na.omit() %>% 
+  filter(ano==2010) %>% 
+  filter(sexo=="Total") %>% 
+  mutate(edad=forcats::fct_reorder(edad, r)) %>% 
+  ggplot(aes(x=edad,y=r)) +
+    geom_bar(stat="identity", alpha=0.6) + coord_flip() +
+     theme_minimal()  
+  
+```
+
+## Estructura por edad y sexo
+
+Un elemento esencial para muchos cálculos en demográfica es tener la matriz "c" de la estructura por edad. 
+Vamos a utilizar de nuevo algunas herramientas de "dplyr"
+
+```{r}
+c<-pob_censo %>% 
+  filter(!sexo%in%c("No especificado", "Total")) %>% 
+  filter(!edad%in%c("No especificado", "Total")) %>% 
+  group_by(ano) %>% 
+  mutate(c=poblacion/sum(poblacion)) %>% 
+  ungroup() %>% 
+  group_by(ano,sexo) %>% 
+  mutate(c_sex=poblacion/sum(poblacion)) 
+```
+
+Uno de los elementos esenciales para lo que vamos usar es para prorratear los no especificados y posteriormente, lo volveremos una matriz para estandarizar las tasas de mortalidad (siguiente práctica)
+
+¿Cómo prorrateamos? Asumimos que los no especificados se comportan como toda la población. En este caso, tenemos, por eso hicimos la variable "c_sex"
+
+Primero vamos a hacer sun subset de los no especificados
+
+```{r}
+no_especificados<-pob_censo %>% 
+  filter(edad=="No especificado") %>% 
+  filter(sexo!="Total") %>% 
+    select(sexo, ano, poblacion) %>% 
+    rename(no_especificado=poblacion)
+
+```
+
+Con esto hoy, haremos un merge, para multiplicar de manera más sencilla los no especificados con la variable "c_sex"
+
+```{r}
+pobla<-merge(c,no_especificados, by=c("sexo", "ano"))
+pobla
+```
+
+El prorateo queda así:
+```{r}
+pobla<-pobla %>% 
+  mutate(pob2=poblacion+round(c_sex*no_especificado,0)) %>% 
+  select(-no_especificado)
+
+pobla
+```
+
+Hoy con esta población ya podemos hacer algunas proyecciones. Una variable n, que mide los años transcurridos entre el 1 de julio de 2009 y el censo de 2010
+
+```{r}
+pobla_mit<-pobla %>% 
+  filter(ano==2010) %>% 
+  mutate(n=difftime(as.Date("2009-07-01"),
+                    as.Date(fecha)
+                    )
+         ) %>% 
+  mutate(n=as.numeric(n)/365)
+
+pobla_mit
+```
+
+Hoy sí! a proyectar:
+
+```{r}
+pobla_mit<-pobla_mit %>% 
+  mutate(pobla_mit=pob2*exp(n*r))
+
+pobla_mit
+```
+
+Y finalmente graficamos:
+
+```{r}
+pobla_mit%>% 
+ mutate(edad=factor(edad, levels=order_edad[-22])) %>% 
+  ggplot(aes(x=edad,y=pobla_mit)) +
+    geom_bar(stat="identity") + coord_flip() +
+    facet_wrap(~sexo) + theme_minimal()  
+```
+
+
+
+# Ejercicio
+
+1. Con la base primera base sin grupos de edad, calcule con en cuánto tiempo se duplicaría la población de 2010, pero si creciera al ritmo que se crecía entre 1950 y 1960
+2. Con este crecimiento en qué fecha se duplicaría la población
+3. Proyecte la población a la mitad del año en 1995
+4. Haga un gráfico del inciso anterior.
+
+Envíe sus respuestas acá: <https://forms.gle/7WUCA59r547V7CC8A>
