@@ -137,3 +137,4 @@ b.	Paquete “demography”: cálculo de tablas de vida y tasas de mortalidad y 
 
 *Objetivo: que el estudiantado sea capaz de comprender los elementos básicos para crear documentos desde R utilizando Rmarkdown*.
 
+[Sesión 14 - Grabación - Incompleta](https://youtu.be/8nE8HGgqxAE)
